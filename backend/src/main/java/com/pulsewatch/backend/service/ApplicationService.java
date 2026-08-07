@@ -1,10 +1,14 @@
 package com.pulsewatch.backend.service;
 
+
 import com.pulsewatch.backend.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
+
+import com.pulsewatch.backend.dto.ApplicationRequest;
+import com.pulsewatch.backend.dto.ApplicationResponse;
 import com.pulsewatch.backend.entity.Application;
 import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class ApplicationService {
@@ -14,25 +18,52 @@ public class ApplicationService {
     public ApplicationService(ApplicationRepository applicationRepository) {
         this.applicationRepository = applicationRepository;
     }
-    public Application saveApplication(Application application) {
-        return applicationRepository.save(application);
+    public ApplicationResponse saveApplication(ApplicationRequest request) {
+
+        // Convert Request DTO → Entity
+        Application application = mapToEntity(request);
+
+        // Save Entity
+        Application savedApplication = applicationRepository.save(application);
+
+        // Convert Entity → Response DTO
+        return mapToResponse(savedApplication);
     }
-    public List<Application> getAllApplications() {
-        return applicationRepository.findAll();
+    public List<ApplicationResponse> getAllApplications() {
+
+        List<Application> applications = applicationRepository.findAll();
+
+        List<ApplicationResponse> responses = new ArrayList<>();
+
+        for (Application application : applications) {
+
+           responses.add(mapToResponse(application));
+        }
+
+        return responses;
     }
-    public Optional<Application> getApplicationById(Long id) {
-        return applicationRepository.findById(id);
+    public ApplicationResponse getApplicationById(Long id) {
+
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        return mapToResponse(application);
     }
-    public Application updateApplication(Long id, Application updatedApplication) {
+
+
+
+    public ApplicationResponse updateApplication(Long id, ApplicationRequest request) {
 
         Application existingApplication = applicationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
-        existingApplication.setApplicationName(updatedApplication.getApplicationName());
-        existingApplication.setOwnerTeam(updatedApplication.getOwnerTeam());
-        existingApplication.setEnvironment(updatedApplication.getEnvironment());
+        existingApplication.setApplicationName(request.getApplicationName());
+        existingApplication.setOwnerTeam(request.getOwnerTeam());
+        existingApplication.setEnvironment(request.getEnvironment());
 
-        return applicationRepository.save(existingApplication);
+        Application updatedApplication = applicationRepository.save(existingApplication);
+
+        return mapToResponse(updatedApplication);
     }
     public void deleteApplication(Long id) {
         if (!applicationRepository.existsById(id)) {
@@ -41,5 +72,27 @@ public class ApplicationService {
         applicationRepository.deleteById(id);
     }
 
+    private Application mapToEntity(ApplicationRequest request) {
+
+        Application application = new Application();
+
+        application.setApplicationName(request.getApplicationName());
+        application.setOwnerTeam(request.getOwnerTeam());
+        application.setEnvironment(request.getEnvironment());
+
+        return application;
+    }
+
+    private ApplicationResponse mapToResponse(Application application) {
+
+        ApplicationResponse response = new ApplicationResponse();
+
+        response.setId(application.getId());
+        response.setApplicationName(application.getApplicationName());
+        response.setOwnerTeam(application.getOwnerTeam());
+        response.setEnvironment(application.getEnvironment());
+
+        return response;
+    }
 
 }

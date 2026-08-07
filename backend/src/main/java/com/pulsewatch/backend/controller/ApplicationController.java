@@ -1,5 +1,6 @@
 package com.pulsewatch.backend.controller;
 
+import com.pulsewatch.backend.dto.ApplicationResponse;
 import com.pulsewatch.backend.entity.Application;
 import com.pulsewatch.backend.service.ApplicationService;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import com.pulsewatch.backend.dto.ApplicationRequest;
+import com.pulsewatch.backend.dto.ApplicationResponse;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -20,22 +23,23 @@ public class ApplicationController {
     }
 
     @PostMapping
-    public Application createApplication(@RequestBody Application application) {
-        return applicationService.saveApplication(application);
+    public ApplicationResponse createApplication(@RequestBody ApplicationRequest request) {
+       return applicationService.saveApplication( request);
     }
     @GetMapping
-    public List<Application> getAllApplications() {
+    public List<ApplicationResponse> getAllApplications() {
+
         return applicationService.getAllApplications();
     }
     @GetMapping("/{id}")
-    public Optional<Application> getApplicationById(@PathVariable Long id) {
+    public  ApplicationResponse getApplicationById(@PathVariable Long id) {
         return applicationService.getApplicationById(id);
     }
     @PutMapping("/{id}")
-    public Application updateApplication(@PathVariable Long id,
-                                         @RequestBody Application application) {
+    public ApplicationResponse updateApplication(@PathVariable Long id,
+                                         @RequestBody ApplicationRequest request) {
 
-        return applicationService.updateApplication(id, application);
+        return applicationService.updateApplication(id, request);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteApplication(@PathVariable Long id) {
