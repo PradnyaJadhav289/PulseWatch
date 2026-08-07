@@ -1,6 +1,7 @@
 package com.pulsewatch.backend.service;
 
 
+import com.pulsewatch.backend.exception.ResourceNotFoundException;
 import com.pulsewatch.backend.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +46,8 @@ public class ApplicationService {
     public ApplicationResponse getApplicationById(Long id) {
 
         Application application = applicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
-
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found with id: " + id));
         return mapToResponse(application);
     }
 
@@ -55,8 +56,7 @@ public class ApplicationService {
     public ApplicationResponse updateApplication(Long id, ApplicationRequest request) {
 
         Application existingApplication = applicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
-
+                .orElseThrow(() -> new ResourceNotFoundException( "Application not found with id: " + id));
         existingApplication.setApplicationName(request.getApplicationName());
         existingApplication.setOwnerTeam(request.getOwnerTeam());
         existingApplication.setEnvironment(request.getEnvironment());
@@ -67,7 +67,8 @@ public class ApplicationService {
     }
     public void deleteApplication(Long id) {
         if (!applicationRepository.existsById(id)) {
-            throw new RuntimeException("Application not found");
+            throw new ResourceNotFoundException(
+                    "Application not found with id: " + id);
         }
         applicationRepository.deleteById(id);
     }
