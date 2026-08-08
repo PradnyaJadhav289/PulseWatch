@@ -8,6 +8,15 @@
 package com.pulsewatch.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class ApplicationRequest {
 
     @NotBlank(message = "Application name is required")
@@ -19,31 +28,4 @@ public class ApplicationRequest {
 
     @NotBlank(message = "Environment is required")
     private String environment;
-
-    public ApplicationRequest() {
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getOwnerTeam() {
-        return ownerTeam;
-    }
-
-    public void setOwnerTeam(String ownerTeam) {
-        this.ownerTeam = ownerTeam;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
 }

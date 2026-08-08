@@ -1,9 +1,17 @@
 package com.pulsewatch.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "applications")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Application {
 
     @Id
@@ -15,44 +23,4 @@ public class Application {
     private String ownerTeam;
 
     private String environment;
-
-    public Application() {
-    }
-
-    public Application(String applicationName,
-                       String ownerTeam,
-                       String environment) {
-
-        this.applicationName = applicationName;
-        this.ownerTeam = ownerTeam;
-        this.environment = environment;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getOwnerTeam() {
-        return ownerTeam;
-    }
-
-    public void setOwnerTeam(String ownerTeam) {
-        this.ownerTeam = ownerTeam;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
 }

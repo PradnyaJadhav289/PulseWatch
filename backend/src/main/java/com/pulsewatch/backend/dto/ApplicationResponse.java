@@ -8,45 +8,17 @@
 // while keeping the database entity hidden.
 package com.pulsewatch.backend.dto;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class ApplicationResponse {
 
     private Long id;
     private String applicationName;
     private String ownerTeam;
     private String environment;
-
-    public ApplicationResponse() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getOwnerTeam() {
-        return ownerTeam;
-    }
-
-    public void setOwnerTeam(String ownerTeam) {
-        this.ownerTeam = ownerTeam;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
 }
