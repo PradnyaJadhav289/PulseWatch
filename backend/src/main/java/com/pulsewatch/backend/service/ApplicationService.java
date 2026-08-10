@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ApplicationService {
@@ -37,18 +39,12 @@ public class ApplicationService {
     }
 
     // GET ALL
-    public List<ApplicationResponse> getAllApplications() {
+    public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
 
-        List<Application> applications =
-                applicationRepository.findAll();
+        Page<Application> applications =
+                applicationRepository.findAll(pageable);
 
-        List<ApplicationResponse> responses = new ArrayList<>();
-
-        for (Application application : applications) {
-            responses.add(mapToResponse(application));
-        }
-
-        return responses;
+        return applications.map(this::mapToResponse);
     }
 
     // GET BY ID

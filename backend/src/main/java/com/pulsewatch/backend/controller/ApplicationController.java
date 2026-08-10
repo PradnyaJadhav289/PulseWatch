@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import com.pulsewatch.backend.dto.ApplicationRequest;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -27,9 +29,8 @@ public class ApplicationController {
        return applicationService.saveApplication( request);
     }
     @GetMapping
-    public List<ApplicationResponse> getAllApplications() {
-
-        return applicationService.getAllApplications();
+    public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
+        return applicationService.getAllApplications(pageable);
     }
     @GetMapping("/{id}")
     public  ApplicationResponse getApplicationById(@PathVariable Long id) {
