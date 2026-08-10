@@ -28,4 +28,11 @@ public class ApplicationRequest {
 
     @NotBlank(message = "Environment is required")
     private String environment;
+
+    private String baseUrl;
+
+    private String description;
+
+    @NotBlank(message = "Status is required")
+    private String status;
 }

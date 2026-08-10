@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "applications")
@@ -22,5 +25,18 @@ public class Application {
 
     private String ownerTeam;
 
-    private String environment;
+    @Enumerated(EnumType.STRING)
+    private Environment environment;
+
+    @Enumerated(EnumType.STRING)
+    private ApplicationStatus status;
+
+    private String baseUrl;
+    private String description;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
