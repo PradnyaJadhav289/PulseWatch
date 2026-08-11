@@ -39,10 +39,39 @@ public class ApplicationService {
     }
 
     // GET ALL
-    public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
+    public Page<ApplicationResponse> getAllApplications(
+            String environment,
+            String status,
+            Pageable pageable) {
 
-        Page<Application> applications =
-                applicationRepository.findAll(pageable);
+        Page<Application> applications;
+
+        if (environment != null && status != null) {
+
+            applications = applicationRepository.findByEnvironmentAndStatus(
+                    Environment.valueOf(environment.toUpperCase()),
+                    ApplicationStatus.valueOf(status.toUpperCase()),
+                    pageable
+            );
+
+        } else if (environment != null) {
+
+            applications = applicationRepository.findByEnvironment(
+                    Environment.valueOf(environment.toUpperCase()),
+                    pageable
+            );
+
+        } else if (status != null) {
+
+            applications = applicationRepository.findByStatus(
+                    ApplicationStatus.valueOf(status.toUpperCase()),
+                    pageable
+            );
+
+        } else {
+
+            applications = applicationRepository.findAll(pageable);
+        }
 
         return applications.map(this::mapToResponse);
     }

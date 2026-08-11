@@ -29,8 +29,16 @@ public class ApplicationController {
        return applicationService.saveApplication( request);
     }
     @GetMapping
-    public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
-        return applicationService.getAllApplications(pageable);
+    public Page<ApplicationResponse> getAllApplications(
+            @RequestParam(required = false) String environment,
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+
+        return applicationService.getAllApplications(
+                environment,
+                status,
+                pageable
+        );
     }
     @GetMapping("/{id}")
     public  ApplicationResponse getApplicationById(@PathVariable Long id) {
