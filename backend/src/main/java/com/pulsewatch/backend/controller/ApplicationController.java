@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import com.pulsewatch.backend.dto.ApplicationRequest;
-import com.pulsewatch.backend.dto.ApplicationResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -23,7 +23,7 @@ public class ApplicationController {
     }
 
     @PostMapping
-    public ApplicationResponse createApplication(@RequestBody ApplicationRequest request) {
+    public ApplicationResponse createApplication(@Valid @RequestBody ApplicationRequest request) {
        return applicationService.saveApplication( request);
     }
     @GetMapping

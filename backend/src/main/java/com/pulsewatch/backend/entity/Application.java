@@ -1,9 +1,20 @@
 package com.pulsewatch.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "applications")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Application {
 
     @Id
@@ -14,45 +25,18 @@ public class Application {
 
     private String ownerTeam;
 
-    private String environment;
+    @Enumerated(EnumType.STRING)
+    private Environment environment;
 
-    public Application() {
-    }
+    @Enumerated(EnumType.STRING)
+    private ApplicationStatus status;
 
-    public Application(String applicationName,
-                       String ownerTeam,
-                       String environment) {
+    private String baseUrl;
+    private String description;
 
-        this.applicationName = applicationName;
-        this.ownerTeam = ownerTeam;
-        this.environment = environment;
-    }
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getOwnerTeam() {
-        return ownerTeam;
-    }
-
-    public void setOwnerTeam(String ownerTeam) {
-        this.ownerTeam = ownerTeam;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
