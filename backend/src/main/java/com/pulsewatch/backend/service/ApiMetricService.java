@@ -15,12 +15,18 @@ import org.springframework.data.domain.Pageable;
 import com.pulsewatch.backend.dto.ApiMetricAnalyticsResponse;
 import java.util.List;
 import com.pulsewatch.backend.dto.EndpointAnalyticsResponse;
+import com.pulsewatch.backend.dto.TimeRangeAnalyticsResponse;
 
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 import com.pulsewatch.backend.dto.SlowEndpointResponse;
 import com.pulsewatch.backend.dto.ErrorAnalyticsResponse;
+
+import com.pulsewatch.backend.dto.MetricTimeBucketResponse;
+import com.pulsewatch.backend.repository.projection.MetricTimeBucketProjection;
+
+
 @Service
 public class ApiMetricService {
 
@@ -289,6 +295,94 @@ public class ApiMetricService {
                 errorRate
         );
     }
+
+    public TimeRangeAnalyticsResponse getTimeRangeAnalytics(
+            Long applicationId,
+            LocalDateTime from,
+            LocalDateTime to) {
+
+        if (!applicationRepository.existsById(applicationId)) {
+            throw new ResourceNotFoundException(
+                    "Application not found with id: " + applicationId
+            );
+        }
+
+        List<ApiMetric> metrics =
+                apiMetricRepository
+                        .findByApplicationIdAndTimestampBetween(
+                                applicationId,
+                                from,
+                                to
+                        );
+
+        long totalRequests = metrics.size();
+
+        if (totalRequests == 0) {
+            return new TimeRangeAnalyticsResponse(
+                    0,
+                    0,
+                    0,
+                    0
+            );
+        }
+
+        long totalResponseTime = 0;
+        long errorCount = 0;
+
+        for (ApiMetric metric : metrics) {
+
+            totalResponseTime += metric.getResponseTime();
+
+            if (metric.getStatusCode() >= 400) {
+                errorCount++;
+            }
+        }
+
+        double averageResponseTime =
+                (double) totalResponseTime / totalRequests;
+
+        double errorRate =
+                ((double) errorCount / totalRequests) * 100;
+
+        return new TimeRangeAnalyticsResponse(
+                totalRequests,
+                averageResponseTime,
+                errorCount,
+                errorRate
+        );
+    }
+
+
+    public List<MetricTimeBucketResponse> getHourlyAnalytics(
+            Long applicationId,
+            LocalDateTime from,
+            LocalDateTime to) {
+
+        if (!applicationRepository.existsById(applicationId)) {
+            throw new ResourceNotFoundException(
+                    "Application not found with id: " + applicationId
+            );
+        }
+
+        List<MetricTimeBucketProjection> buckets =
+                apiMetricRepository.findHourlyAnalytics(
+                        applicationId,
+                        from,
+                        to
+                );
+
+        return buckets.stream()
+                .map(bucket ->
+                        new MetricTimeBucketResponse(
+                                bucket.getTime(),
+                                bucket.getRequestCount(),
+                                bucket.getAverageResponseTime(),
+                                bucket.getErrorCount()
+                        )
+                )
+                .toList();
+    }
+
     private ApiMetricResponse mapToResponse(ApiMetric metric) {
 
         ApiMetricResponse response = new ApiMetricResponse();
