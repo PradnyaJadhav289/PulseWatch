@@ -1,12 +1,13 @@
 package com.pulsewatch.backend.controller;
 
-import com.pulsewatch.backend.dto.ApiMetricRequest;
-import com.pulsewatch.backend.dto.ApiMetricResponse;
+import com.pulsewatch.backend.dto.*;
 import com.pulsewatch.backend.service.ApiMetricService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/metrics")
@@ -39,6 +40,67 @@ public class ApiMetricController {
         return apiMetricService.getMetricsByApplication(
                 applicationId,
                 pageable
+        );
+    }
+
+    @GetMapping("/analytics")
+    public ApiMetricAnalyticsResponse getAnalytics(
+            @RequestParam Long applicationId) {
+
+        return apiMetricService.getAnalytics(applicationId);
+    }
+
+    @GetMapping("/analytics/endpoints")
+    public List<EndpointAnalyticsResponse> getEndpointAnalytics(
+            @RequestParam Long applicationId) {
+
+        return apiMetricService.getEndpointAnalytics(
+                applicationId
+        );
+    }
+
+    @GetMapping("/analytics/slow")
+    public List<SlowEndpointResponse> getSlowEndpoints(
+            @RequestParam Long applicationId,
+            @RequestParam long threshold) {
+
+        return apiMetricService.getSlowEndpoints(
+                applicationId,
+                threshold
+        );
+    }
+
+    @GetMapping("/analytics/errors")
+    public ErrorAnalyticsResponse getErrorAnalytics(
+            @RequestParam Long applicationId) {
+
+        return apiMetricService.getErrorAnalytics(
+                applicationId
+        );
+    }
+
+    @GetMapping("/analytics/time-range")
+    public TimeRangeAnalyticsResponse getTimeRangeAnalytics(
+            @RequestParam Long applicationId,
+            @RequestParam LocalDateTime from,
+            @RequestParam LocalDateTime to) {
+
+        return apiMetricService.getTimeRangeAnalytics(
+                applicationId,
+                from,
+                to
+        );
+    }
+    @GetMapping("/analytics/hourly")
+    public List<MetricTimeBucketResponse> getHourlyAnalytics(
+            @RequestParam Long applicationId,
+            @RequestParam LocalDateTime from,
+            @RequestParam LocalDateTime to) {
+
+        return apiMetricService.getHourlyAnalytics(
+                applicationId,
+                from,
+                to
         );
     }
 }
