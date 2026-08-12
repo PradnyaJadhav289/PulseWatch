@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.pulsewatch.backend.specification.ApplicationSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class ApplicationService {
@@ -40,38 +42,35 @@ public class ApplicationService {
 
     // GET ALL
     public Page<ApplicationResponse> getAllApplications(
+            String search,
             String environment,
             String status,
             Pageable pageable) {
 
-        Page<Application> applications;
+        Environment environmentEnum = null;
+        ApplicationStatus statusEnum = null;
 
-        if (environment != null && status != null) {
-
-            applications = applicationRepository.findByEnvironmentAndStatus(
-                    Environment.valueOf(environment.toUpperCase()),
-                    ApplicationStatus.valueOf(status.toUpperCase()),
-                    pageable
-            );
-
-        } else if (environment != null) {
-
-            applications = applicationRepository.findByEnvironment(
-                    Environment.valueOf(environment.toUpperCase()),
-                    pageable
-            );
-
-        } else if (status != null) {
-
-            applications = applicationRepository.findByStatus(
-                    ApplicationStatus.valueOf(status.toUpperCase()),
-                    pageable
-            );
-
-        } else {
-
-            applications = applicationRepository.findAll(pageable);
+        if (environment != null && !environment.isBlank()) {
+            environmentEnum =
+                    Environment.valueOf(environment.toUpperCase());
         }
+
+        if (status != null && !status.isBlank()) {
+            statusEnum =
+                    ApplicationStatus.valueOf(status.toUpperCase());
+        }
+
+        Specification<Application> specification =
+                Specification
+                        .where(ApplicationSpecification.search(search))
+                        .and(ApplicationSpecification.hasEnvironment(environmentEnum))
+                        .and(ApplicationSpecification.hasStatus(statusEnum));
+
+        Page<Application> applications =
+                applicationRepository.findAll(
+                        specification,
+                        pageable
+                );
 
         return applications.map(this::mapToResponse);
     }

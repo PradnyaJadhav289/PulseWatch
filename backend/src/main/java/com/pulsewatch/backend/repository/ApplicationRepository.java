@@ -8,6 +8,7 @@ import com.pulsewatch.backend.entity.ApplicationStatus;
 import com.pulsewatch.backend.entity.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 
 @Repository
@@ -16,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 //
 //The second type (Long) tells Spring:
 //        "The primary key (@Id) of the entity is of type Long."
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
+public interface ApplicationRepository extends JpaRepository<Application, Long> ,JpaSpecificationExecutor<Application>{
     Page<Application> findByEnvironment(
             Environment environment,
             Pageable pageable
@@ -32,4 +33,8 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
             ApplicationStatus status,
             Pageable pageable
     );
+
+    long countByStatus(ApplicationStatus status);
+
+    long countByEnvironment(Environment environment);
 }

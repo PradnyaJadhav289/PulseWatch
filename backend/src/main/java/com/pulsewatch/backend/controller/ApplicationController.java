@@ -30,11 +30,20 @@ public class ApplicationController {
     }
     @GetMapping
     public Page<ApplicationResponse> getAllApplications(
-            @RequestParam(required = false) String environment,
-            @RequestParam(required = false) String status,
+
+            @RequestParam(required = false)
+            String search,
+
+            @RequestParam(required = false)
+            String environment,
+
+            @RequestParam(required = false)
+            String status,
+
             Pageable pageable) {
 
         return applicationService.getAllApplications(
+                search,
                 environment,
                 status,
                 pageable
