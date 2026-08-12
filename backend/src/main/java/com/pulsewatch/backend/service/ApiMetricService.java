@@ -10,6 +10,8 @@ import com.pulsewatch.backend.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ApiMetricService {
@@ -47,6 +49,33 @@ public class ApiMetricService {
                 apiMetricRepository.save(metric);
 
         return mapToResponse(savedMetric);
+    }
+
+    public Page<ApiMetricResponse> getAllMetrics(Pageable pageable) {
+
+        Page<ApiMetric> metrics =
+                apiMetricRepository.findAll(pageable);
+
+        return metrics.map(this::mapToResponse);
+    }
+
+    public Page<ApiMetricResponse> getMetricsByApplication(
+            Long applicationId,
+            Pageable pageable) {
+
+        if (!applicationRepository.existsById(applicationId)) {
+            throw new ResourceNotFoundException(
+                    "Application not found with id: " + applicationId
+            );
+        }
+
+        Page<ApiMetric> metrics =
+                apiMetricRepository.findByApplicationId(
+                        applicationId,
+                        pageable
+                );
+
+        return metrics.map(this::mapToResponse);
     }
 
     private ApiMetricResponse mapToResponse(ApiMetric metric) {
