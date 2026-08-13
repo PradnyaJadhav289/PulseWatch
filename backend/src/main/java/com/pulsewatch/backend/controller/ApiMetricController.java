@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/metrics")
@@ -21,7 +22,7 @@ public class ApiMetricController {
 
     @PostMapping
     public ApiMetricResponse createMetric(
-            @RequestBody ApiMetricRequest request) {
+            @Valid @RequestBody ApiMetricRequest request) {
 
         return apiMetricService.saveMetric(request);
     }
