@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
 
 import {
-  getApplicationAnalytics,
-} from "../services/metricService";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 import {
-  getApplications,
-} from "../services/applicationService";
+  getApplicationAnalytics,
+  getHourlyAnalytics,
+} from "../services/metricService";
+
+import { getApplications } from "../services/applicationService";
 
 import type { ApiMetricAnalytics } from "../types/analytics";
 import type { Application } from "../types/application";
+import type { HourlyAnalytics } from "../types/hourlyAnalytics";
 
 function Dashboard() {
 
@@ -21,6 +31,9 @@ function Dashboard() {
 
   const [analytics, setAnalytics] =
     useState<ApiMetricAnalytics | null>(null);
+
+  const [hourlyData, setHourlyData] =
+    useState<HourlyAnalytics[]>([]);
 
   const [loading, setLoading] =
     useState(true);
@@ -49,7 +62,6 @@ function Dashboard() {
         console.error(error);
 
         setError("Failed to load applications");
-
       }
     };
 
@@ -72,12 +84,30 @@ function Dashboard() {
         setLoading(true);
         setError(null);
 
+        // Load overall analytics
         const data =
           await getApplicationAnalytics(
             selectedApplicationId
           );
 
         setAnalytics(data);
+
+
+        // Load hourly analytics
+        const from =
+          "2026-08-12T00:00:00";
+
+        const to =
+          "2026-08-12T23:59:59";
+
+        const hourly =
+          await getHourlyAnalytics(
+            selectedApplicationId,
+            from,
+            to
+          );
+
+        setHourlyData(hourly);
 
       } catch (error) {
 
@@ -170,12 +200,11 @@ function Dashboard() {
       )}
 
 
-      {/* Analytics */}
+      {/* Analytics Cards */}
 
       {!loading && analytics && (
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-
 
           {/* Total Requests */}
 
@@ -216,6 +245,7 @@ function Dashboard() {
             </p>
 
             <h2 className="mt-2 text-3xl font-bold text-slate-900">
+
               {analytics.totalRequests > 0
                 ? (
                     analytics.errorCount /
@@ -224,7 +254,78 @@ function Dashboard() {
                   ).toFixed(2)
                 : "0.00"
               }%
+
             </h2>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* Response Time Chart */}
+
+      {!loading && hourlyData.length > 0 && (
+
+        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
+
+          <h2 className="mb-6 text-xl font-semibold text-slate-900">
+            Response Time
+          </h2>
+
+          <div className="h-80">
+
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+
+              <LineChart data={hourlyData}>
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                  label={{
+    value: "Time",
+    position: "insideBottom",
+    offset: -5,
+  }}
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )
+                  }
+                />
+
+                <YAxis
+  label={{
+    value: "Average Response Time (ms)",
+    angle: -90,
+    position: "insideLeft",
+  }}
+/>
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="averageResponseTime"
+                  name="Average Response Time"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                />
+
+              </LineChart>
+
+            </ResponsiveContainer>
 
           </div>
 
