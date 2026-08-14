@@ -84,7 +84,7 @@ function Dashboard() {
         setLoading(true);
         setError(null);
 
-        // Load overall analytics
+        // Overall analytics
         const data =
           await getApplicationAnalytics(
             selectedApplicationId
@@ -93,7 +93,7 @@ function Dashboard() {
         setAnalytics(data);
 
 
-        // Load hourly analytics
+        // Hourly analytics
         const from =
           "2026-08-12T00:00:00";
 
@@ -138,7 +138,7 @@ function Dashboard() {
   return (
     <div>
 
-      {/* Header */}
+      {/* ================= HEADER ================= */}
 
       <div className="mb-8 flex items-center justify-between">
 
@@ -191,7 +191,7 @@ function Dashboard() {
       </div>
 
 
-      {/* Loading */}
+      {/* ================= LOADING ================= */}
 
       {loading && (
         <p className="text-slate-500">
@@ -200,7 +200,7 @@ function Dashboard() {
       )}
 
 
-      {/* Analytics Cards */}
+      {/* ================= ANALYTICS CARDS ================= */}
 
       {!loading && analytics && (
 
@@ -264,7 +264,7 @@ function Dashboard() {
       )}
 
 
-      {/* Response Time Chart */}
+      {/* ================= RESPONSE TIME ================= */}
 
       {!loading && hourlyData.length > 0 && (
 
@@ -290,10 +290,10 @@ function Dashboard() {
                 <XAxis
                   dataKey="time"
                   label={{
-    value: "Time",
-    position: "insideBottom",
-    offset: -5,
-  }}
+                    value: "Time",
+                    position: "insideBottom",
+                    offset: -5,
+                  }}
                   tickFormatter={(value) =>
                     new Date(value).toLocaleTimeString(
                       [],
@@ -306,12 +306,12 @@ function Dashboard() {
                 />
 
                 <YAxis
-  label={{
-    value: "Average Response Time (ms)",
-    angle: -90,
-    position: "insideLeft",
-  }}
-/>
+                  label={{
+                    value: "Average Response Time (ms)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
 
                 <Tooltip />
 
@@ -320,6 +320,146 @@ function Dashboard() {
                   dataKey="averageResponseTime"
                   name="Average Response Time"
                   stroke="#2563eb"
+                  strokeWidth={2}
+                />
+
+              </LineChart>
+
+            </ResponsiveContainer>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* ================= REQUEST VOLUME ================= */}
+
+      {!loading && hourlyData.length > 0 && (
+
+        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
+
+          <h2 className="mb-6 text-xl font-semibold text-slate-900">
+            Request Volume
+          </h2>
+
+          <div className="h-80">
+
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+
+              <LineChart data={hourlyData}>
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                  label={{
+                    value: "Time",
+                    position: "insideBottom",
+                    offset: -5,
+                  }}
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )
+                  }
+                />
+
+                <YAxis
+                  label={{
+                    value: "Request Count",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="requestCount"
+                  name="Requests"
+                  stroke="#16a34a"
+                  strokeWidth={2}
+                />
+
+              </LineChart>
+
+            </ResponsiveContainer>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* ================= ERROR TREND ================= */}
+
+      {!loading && hourlyData.length > 0 && (
+
+        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
+
+          <h2 className="mb-6 text-xl font-semibold text-slate-900">
+            Error Trend
+          </h2>
+
+          <div className="h-80">
+
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+
+              <LineChart data={hourlyData}>
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                  label={{
+                    value: "Time",
+                    position: "insideBottom",
+                    offset: -5,
+                  }}
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )
+                  }
+                />
+
+                <YAxis
+                  label={{
+                    value: "Error Count",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="errorCount"
+                  name="Errors"
+                  stroke="#dc2626"
                   strokeWidth={2}
                 />
 
