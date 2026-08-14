@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import ResponseTimeChart from "../components/charts/ResponseTimeChart";
+import RequestVolumeChart from "../components/charts/RequestVolumeChart";
+import ErrorTrendChart from "../components/charts/ErrorTrendChart";
 
 import {
   getApplicationAnalytics,
@@ -20,6 +14,42 @@ import { getApplications } from "../services/applicationService";
 import type { ApiMetricAnalytics } from "../types/analytics";
 import type { Application } from "../types/application";
 import type { HourlyAnalytics } from "../types/hourlyAnalytics";
+
+import MetricCard from "../components/MetricCard";
+
+
+
+const getDateRange = (
+  range: "today" | "24h" | "7d"
+) => {
+
+  const now = new Date();
+
+  const to = new Date(now);
+
+  const from = new Date(now);
+
+  if (range === "today") {
+    from.setHours(0, 0, 0, 0);
+  }
+
+  if (range === "24h") {
+    from.setHours(
+      from.getHours() - 24
+    );
+  }
+
+  if (range === "7d") {
+    from.setDate(
+      from.getDate() - 7
+    );
+  }
+
+  return {
+    from: from.toISOString().slice(0, 19),
+    to: to.toISOString().slice(0, 19),
+  };
+};
 
 function Dashboard() {
 
@@ -34,6 +64,9 @@ function Dashboard() {
 
   const [hourlyData, setHourlyData] =
     useState<HourlyAnalytics[]>([]);
+
+    const [timeRange, setTimeRange] =
+  useState<"today" | "24h" | "7d">("today");
 
   const [loading, setLoading] =
     useState(true);
@@ -94,11 +127,8 @@ function Dashboard() {
 
 
         // Hourly analytics
-        const from =
-          "2026-08-12T00:00:00";
-
-        const to =
-          "2026-08-12T23:59:59";
+        const { from, to } =
+  getDateRange(timeRange);
 
         const hourly =
           await getHourlyAnalytics(
@@ -123,7 +153,7 @@ function Dashboard() {
 
     loadAnalytics();
 
-  }, [selectedApplicationId]);
+  }, [selectedApplicationId, timeRange]);
 
 
   if (error) {
@@ -188,290 +218,115 @@ function Dashboard() {
 
         </div>
 
+        <div>
+
+  <label className="mb-2 block text-sm font-medium text-slate-700">
+    Time Range
+  </label>
+
+  <select
+    value={timeRange}
+    onChange={(event) =>
+      setTimeRange(
+        event.target.value as
+          "today" | "24h" | "7d"
+      )
+    }
+    className="rounded-lg border border-slate-300 bg-white px-4 py-2 outline-none focus:border-slate-500"
+  >
+
+    <option value="today">
+      Today
+    </option>
+
+    <option value="24h">
+      Last 24 Hours
+    </option>
+
+    <option value="7d">
+      Last 7 Days
+    </option>
+
+  </select>
+
+</div>
+
       </div>
 
 
       {/* ================= LOADING ================= */}
-
-      {loading && (
-        <p className="text-slate-500">
-          Loading analytics...
-        </p>
-      )}
-
+{loading && (
+  <div className="mt-8 rounded-xl bg-white p-8 text-center shadow-sm">
+    <p className="text-slate-500">
+      Loading analytics...
+    </p>
+  </div>
+)}
 
       {/* ================= ANALYTICS CARDS ================= */}
 
-      {!loading && analytics && (
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-
-          {/* Total Requests */}
-
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-
-            <p className="text-sm text-slate-500">
-              Total Requests
-            </p>
-
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">
-              {analytics.totalRequests}
-            </h2>
-
-          </div>
-
-
-          {/* Average Response Time */}
-
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-
-            <p className="text-sm text-slate-500">
-              Avg Response Time
-            </p>
-
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">
-              {analytics.averageResponseTime.toFixed(2)} ms
-            </h2>
-
-          </div>
-
-
-          {/* Error Rate */}
-
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-
-            <p className="text-sm text-slate-500">
-              Error Rate
-            </p>
-
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">
-
-              {analytics.totalRequests > 0
-                ? (
-                    analytics.errorCount /
-                    analytics.totalRequests *
-                    100
-                  ).toFixed(2)
-                : "0.00"
-              }%
-
-            </h2>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* ================= RESPONSE TIME ================= */}
-
-      {!loading && hourlyData.length > 0 && (
-
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-
-          <h2 className="mb-6 text-xl font-semibold text-slate-900">
-            Response Time
-          </h2>
-
-          <div className="h-80">
-
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-
-              <LineChart data={hourlyData}>
-
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                />
-
-                <XAxis
-                  dataKey="time"
-                  label={{
-                    value: "Time",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                  tickFormatter={(value) =>
-                    new Date(value).toLocaleTimeString(
-                      [],
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )
-                  }
-                />
-
-                <YAxis
-                  label={{
-                    value: "Average Response Time (ms)",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-
-                <Tooltip />
-
-                <Line
-                  type="monotone"
-                  dataKey="averageResponseTime"
-                  name="Average Response Time"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                />
-
-              </LineChart>
-
-            </ResponsiveContainer>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* ================= REQUEST VOLUME ================= */}
-
-      {!loading && hourlyData.length > 0 && (
-
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-
-          <h2 className="mb-6 text-xl font-semibold text-slate-900">
-            Request Volume
-          </h2>
-
-          <div className="h-80">
-
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-
-              <LineChart data={hourlyData}>
-
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                />
-
-                <XAxis
-                  dataKey="time"
-                  label={{
-                    value: "Time",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                  tickFormatter={(value) =>
-                    new Date(value).toLocaleTimeString(
-                      [],
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )
-                  }
-                />
-
-                <YAxis
-                  label={{
-                    value: "Request Count",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-
-                <Tooltip />
-
-                <Line
-                  type="monotone"
-                  dataKey="requestCount"
-                  name="Requests"
-                  stroke="#16a34a"
-                  strokeWidth={2}
-                />
-
-              </LineChart>
-
-            </ResponsiveContainer>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* ================= ERROR TREND ================= */}
-
-      {!loading && hourlyData.length > 0 && (
-
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-
-          <h2 className="mb-6 text-xl font-semibold text-slate-900">
-            Error Trend
-          </h2>
-
-          <div className="h-80">
-
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-
-              <LineChart data={hourlyData}>
-
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                />
-
-                <XAxis
-                  dataKey="time"
-                  label={{
-                    value: "Time",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                  tickFormatter={(value) =>
-                    new Date(value).toLocaleTimeString(
-                      [],
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )
-                  }
-                />
-
-                <YAxis
-                  label={{
-                    value: "Error Count",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-
-                <Tooltip />
-
-                <Line
-                  type="monotone"
-                  dataKey="errorCount"
-                  name="Errors"
-                  stroke="#dc2626"
-                  strokeWidth={2}
-                />
-
-              </LineChart>
-
-            </ResponsiveContainer>
-
-          </div>
-
-        </div>
-
-      )}
+{!loading && analytics && (
+
+  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+
+    <MetricCard
+      title="Total Requests"
+      value={analytics.totalRequests}
+      description="Total API requests"
+    />
+
+    <MetricCard
+      title="Avg Response Time"
+      value={`${analytics.averageResponseTime.toFixed(2)} ms`}
+      description="Average API response time"
+    />
+
+    <MetricCard
+      title="Error Rate"
+      value={
+        analytics.totalRequests > 0
+          ? `${(
+              analytics.errorCount /
+              analytics.totalRequests *
+              100
+            ).toFixed(2)}%`
+          : "0.00%"
+      }
+      description={`${analytics.errorCount} errors detected`}
+    />
+
+  </div>
+
+)}
+
+
+
+
+{/* Charts */}
+
+{!loading && hourlyData.length > 0 && (
+  <>
+    <ResponseTimeChart data={hourlyData} />
+
+    <RequestVolumeChart data={hourlyData} />
+
+    <ErrorTrendChart data={hourlyData} />
+  </>
+)}
+
+{!loading && hourlyData.length === 0 && (
+  <div className="mt-8 rounded-xl bg-white p-8 text-center shadow-sm">
+    <h2 className="text-lg font-semibold text-slate-900">
+      No metrics available
+    </h2>
+
+    <p className="mt-2 text-sm text-slate-500">
+      No API metrics were recorded for the selected application
+      and time range.
+    </p>
+  </div>
+)}
+     
 
     </div>
   );
