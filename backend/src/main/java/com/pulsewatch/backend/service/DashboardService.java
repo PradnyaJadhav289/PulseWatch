@@ -35,23 +35,31 @@ public class DashboardService {
                         Environment.PRODUCTION
                 );
 
-        long uatApplications =
+        long testingApplications =
                 applicationRepository.countByEnvironment(
-                        Environment.UAT
+                        Environment.TESTING
                 );
 
         long developmentApplications =
                 applicationRepository.countByEnvironment(
                         Environment.DEVELOPMENT
                 );
+        long stagingApplications =
+                applicationRepository.countByEnvironment(
+                        Environment.STAGING
+                );
+
+
 
         return new DashboardStatisticsResponse(
                 totalApplications,
                 activeApplications,
                 inactiveApplications,
                 productionApplications,
-                uatApplications,
-                developmentApplications
+                testingApplications,
+                developmentApplications,
+                stagingApplications
+
         );
     }
 }
