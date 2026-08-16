@@ -134,13 +134,13 @@ public class ApplicationService {
     // DELETE
     public void deleteApplication(Long id) {
 
-        if (!applicationRepository.existsById(id)) {
-            throw new ResourceNotFoundException(
-                    "Application not found with id: " + id
-            );
-        }
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found with id: " + id));
 
-        applicationRepository.deleteById(id);
+        application.setStatus(ApplicationStatus.INACTIVE);
+
+        applicationRepository.save(application);
     }
 
     // Request DTO → Entity
