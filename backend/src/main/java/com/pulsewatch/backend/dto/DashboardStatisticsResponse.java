@@ -11,6 +11,7 @@ public class DashboardStatisticsResponse {
     private long activeApplications;
     private long inactiveApplications;
     private long productionApplications;
-    private long uatApplications;
+    private long  testingApplications;
     private long developmentApplications;
+    private long stagingApplications;
 }

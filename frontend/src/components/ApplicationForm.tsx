@@ -2,22 +2,41 @@ import { useState } from "react";
 import type { Application } from "../types/application";
 import api from "../services/api";
 
-interface CreateApplicationFormProps {
-  onApplicationCreated: (application: Application) => void;
+interface ApplicationFormProps {
+  application?: Application;
+
+  onApplicationSaved: (
+    application: Application
+  ) => void;
+
+  onCancel: () => void;
 }
 
-function CreateApplicationForm({
-  onApplicationCreated,
-}: CreateApplicationFormProps) {
+function ApplicationForm({
+  application,
+  onApplicationSaved,
+  onCancel,
+}: ApplicationFormProps) {
 
-  const [formData, setFormData] = useState({
-    applicationName: "",
-    ownerTeam: "",
-    environment: "DEVELOPMENT",
-    baseUrl: "",
-    description: "",
-    status: "ACTIVE",
-  });
+ const [formData, setFormData] = useState({
+  applicationName:
+    application?.applicationName ?? "",
+
+  ownerTeam:
+    application?.ownerTeam ?? "",
+
+  environment:
+    application?.environment ?? "DEVELOPMENT",
+
+  baseUrl:
+    application?.baseUrl ?? "",
+
+  description:
+    application?.description ?? "",
+
+  status:
+    application?.status ?? "ACTIVE",
+});
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,33 +65,70 @@ function CreateApplicationForm({
       setLoading(true);
       setError("");
 
-      const response = await api.post<Application>(
-        "/applications",
-        formData
-      );
+      //edit mode
+      if (application) {
 
-      onApplicationCreated(response.data);
+        const response =
+          await api.put<Application>(
+            `/applications/${application.id}`,
+            formData
+          );
 
-      setFormData({
-        applicationName: "",
-        ownerTeam: "",
-        environment: "DEVELOPMENT",
-        baseUrl: "",
-        description: "",
-        status: "ACTIVE",
-      });
+        // UPDATED:
+        // Notify parent that application was updated
+        onApplicationSaved(
+          response.data
+        );
+
+      }
+      
+   //crete mode
+   else {
+
+        const response =
+          await api.post<Application>(
+            "/applications",
+            formData
+          );
+
+        // UPDATED:
+        // Same callback is used for Create
+        onApplicationSaved(
+          response.data
+        );
+
+        // Clear form after creating
+        setFormData({
+          applicationName: "",
+          ownerTeam: "",
+          environment: "DEVELOPMENT",
+          baseUrl: "",
+          description: "",
+          status: "ACTIVE",
+        });
+
+      }
+      
 
     } catch (error) {
 
       console.error(error);
 
-      setError("Failed to create application");
+      // UPDATED:
+      // Generic message because this form handles
+      // both Create and Edit.
+      setError(
+        application
+          ? "Failed to update application"
+          : "Failed to create application"
+      );
 
     } finally {
 
       setLoading(false);
     }
   };
+      
 
   return (
     <form
@@ -81,8 +137,10 @@ function CreateApplicationForm({
     >
 
       <h2 className="mb-6 text-xl font-semibold text-slate-900">
-        Create Application
-      </h2>
+  {application
+    ? "Edit Application"
+    : "Create Application"}
+</h2>
 
       {error && (
         <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
@@ -143,8 +201,8 @@ function CreateApplicationForm({
               DEVELOPMENT
             </option>
 
-            <option value="TEST">
-              TEST
+            <option value="TESTING">
+              TESTING
             </option>
 
             <option value="STAGING">
@@ -221,20 +279,37 @@ function CreateApplicationForm({
 
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-end gap-3">
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-slate-900 px-5 py-2.5 font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? "Creating..." : "Create Application"}
-        </button>
+  {/* Cancel Button */}
 
-      </div>
+  <button
+    type="button"
+    onClick={onCancel}
+    className="rounded-lg border border-slate-300 px-5 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+  >
+    Cancel
+  </button>
+
+
+  {/* Save / Update Button */}
+
+  <button
+    type="submit"
+    disabled={loading}
+    className="rounded-lg bg-slate-900 px-5 py-2.5 font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    {loading
+      ? "Saving..."
+      : application
+        ? "Update Application"
+        : "Create Application"}
+  </button>
+
+</div>
 
     </form>
   );
 }
 
-export default CreateApplicationForm;
+export default ApplicationForm;
