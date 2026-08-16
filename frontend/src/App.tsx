@@ -6,6 +6,7 @@ import {
 
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/Dashboardlayout";
+import Applications from "./pages/Applications";
 
 function App() {
   return (
@@ -19,6 +20,11 @@ function App() {
             path="/"
             element={<Dashboard />}
           />
+
+          <Route
+  path="/applications"
+  element={<Applications />}
+/>
 
         </Route>
 

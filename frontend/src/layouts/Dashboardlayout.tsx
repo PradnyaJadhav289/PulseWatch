@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function DashboardLayout() {
   return (
@@ -20,9 +21,18 @@ function DashboardLayout() {
             Dashboard
           </div>
 
-          <div className="mt-2 rounded-lg px-4 py-3 text-slate-300">
-            Applications
-          </div>
+          <NavLink
+  to="/applications"
+  className={({ isActive }) =>
+    `mt-2 block rounded-lg px-4 py-3 ${
+      isActive
+        ? "bg-slate-800 text-white"
+        : "text-slate-300"
+    }`
+  }
+>
+  Applications
+</NavLink>
 
           <div className="mt-2 rounded-lg px-4 py-3 text-slate-300">
             Metrics
