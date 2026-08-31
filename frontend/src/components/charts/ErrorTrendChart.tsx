@@ -12,10 +12,12 @@ import type { HourlyAnalytics } from "../../types/hourlyAnalytics";
 
 interface ErrorTrendChartProps {
   data: HourlyAnalytics[];
+   isDaily?: boolean;
 }
 
 function ErrorTrendChart({
   data,
+  isDaily = false,
 }: ErrorTrendChartProps) {
 
   return (
@@ -34,19 +36,29 @@ function ErrorTrendChart({
             <CartesianGrid strokeDasharray="3 3" />
 
             <XAxis
-              dataKey="time"
-              label={{
-                value: "Time",
-                position: "insideBottom",
-                offset: -5,
-              }}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              }
-            />
+  dataKey="time"
+  label={{
+    value: isDaily ? "Date" : "Time",
+    position: "insideBottom",
+    offset: -5,
+  }}
+  tickFormatter={(value) => {
+
+    const date = new Date(String(value));
+
+    if (isDaily) {
+      return date.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }}
+/>
 
             <YAxis
               label={{
@@ -56,8 +68,31 @@ function ErrorTrendChart({
               }}
             />
 
-            <Tooltip />
+<Tooltip
+  labelFormatter={(value) => {
+    const date = new Date(String(value));
 
+    if (isDaily) {
+      return date.toLocaleDateString([], {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }}
+  formatter={(value) => [
+    `${Number(value)} errors`,
+    "Errors",
+  ]}
+/>
             <Line
               type="monotone"
               dataKey="errorCount"

@@ -18,6 +18,10 @@ import MetricCard from "../components/MetricCard";
 import { getDashboardStatistics } from "../services/dashboardService";
 import type { DashboardStatistics } from "../types/dashboard";
 
+import {
+  aggregateDailyAnalytics,
+} from "../utils/analytics";
+
 
 const formatDateTime = (date: Date): string => {
 
@@ -41,24 +45,51 @@ const formatDateTime = (date: Date): string => {
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
+const getTodayDate = (): string => {
+
+  const today = new Date();
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    String(today.getMonth() + 1)
+      .padStart(2, "0");
+
+  const day =
+    String(today.getDate())
+      .padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 
 const getDateRange = (
-  range: "yesterday" | "today" | "24h" | "7d"
-) => {
+  range:
+    | "yesterday"
+    | "today"
+    | "24h"
+    | "7d",
+): { from: string; to: string } => {
 
   const now = new Date();
 
+  const from = new Date(now);
   const to = new Date(now);
 
-  const from = new Date(now);
 
+  // TODAY
   if (range === "today") {
-    from.setHours(0, 0, 0, 0);
-  }
-  
- if (range === "yesterday") {
 
-    // Move both dates to yesterday
+    from.setHours(0, 0, 0, 0);
+
+    to.setHours(23, 59, 59, 999);
+  }
+
+
+  // YESTERDAY
+  else if (range === "yesterday") {
+
     from.setDate(
       from.getDate() - 1
     );
@@ -67,34 +98,41 @@ const getDateRange = (
       to.getDate() - 1
     );
 
-    // Yesterday starts at 00:00:00
     from.setHours(0, 0, 0, 0);
 
-    // Yesterday ends at 23:59:59
     to.setHours(23, 59, 59, 999);
   }
 
-  if (range === "24h") {
+
+  // LAST 24 HOURS
+  else if (range === "24h") {
+
     from.setHours(
       from.getHours() - 24
     );
   }
 
-  if (range === "7d") {
+
+  // LAST 7 DAYS
+  else if (range === "7d") {
+
     from.setDate(
       from.getDate() - 6
     );
 
-      from.setHours(0, 0, 0, 0);
+    from.setHours(0, 0, 0, 0);
 
+    to.setHours(23, 59, 59, 999);
   }
 
 
   return {
-  from: formatDateTime(from),
-  to: formatDateTime(to),
+    from: formatDateTime(from),
+    to: formatDateTime(to),
+  };
 };
-};
+
+
 
 function Dashboard() {
 
@@ -110,8 +148,24 @@ function Dashboard() {
   const [hourlyData, setHourlyData] =
     useState<HourlyAnalytics[]>([]);
 
-    const [timeRange, setTimeRange] =
-  useState<"today" |"yesterday"| "24h" | "7d">("today");
+  const [timeRange, setTimeRange] =
+  useState<
+    "yesterday" | "today" | "24h" | "7d" | "custom"
+  >("today");
+
+  // Custom date range selected by the user
+const [fromDate, setFromDate] =
+  useState("");
+
+const [toDate, setToDate] =
+  useState("");
+
+// Stores the date range after the user clicks Apply
+const [appliedFromDate, setAppliedFromDate] =
+  useState("");
+
+const [appliedToDate, setAppliedToDate] =
+  useState("");
 
   const [loading, setLoading] =
     useState(true);
@@ -164,68 +218,93 @@ useEffect(() => {
     return;
   }
 
-  const loadAnalytics = async () => {
+ const loadAnalytics = async () => {
 
-    try {
+  try {
 
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      // Get selected time range
-      const { from, to } =
+    let from: string;
+    let to: string;
+
+
+    // ======================================================
+    // CUSTOM DATE RANGE
+    // ======================================================
+
+    if (timeRange === "custom") {
+
+      if (
+        !appliedFromDate ||
+        !appliedToDate
+      ) {
+        setLoading(false);
+        return;
+      }
+
+      from =
+        `${appliedFromDate}T00:00:00`;
+
+      to =
+        `${appliedToDate}T23:59:59`;
+    }
+
+
+    // ======================================================
+    // PRESET DATE RANGE
+    // ======================================================
+
+    else {
+
+      const dateRange =
         getDateRange(timeRange);
 
-
-      // ======================================================
-      // SUMMARY ANALYTICS
-      // ======================================================
-      //
-      // This controls:
-      // Total Requests
-      // Average Response Time
-      // Error Rate
-      //
-      const data =
-        await getApplicationAnalyticsByTimeRange(
-          selectedApplicationId,
-          from,
-          to
-        );
-
-      setAnalytics(data);
+      from = dateRange.from;
+      to = dateRange.to;
+    }
 
 
-      // ======================================================
-      // HOURLY ANALYTICS
-      // ======================================================
-      //
-      // This controls:
-      // Response Time Chart
-      // Request Volume Chart
-      // Error Trend Chart
-      //
-      const hourly =
-        await getHourlyAnalytics(
-          selectedApplicationId,
-          from,
-          to
-        );
+    // ======================================================
+    // SUMMARY ANALYTICS
+    // ======================================================
 
-      setHourlyData(hourly);
-
-    } catch (error) {
-
-      console.error(error);
-
-      setError(
-        "Failed to load analytics"
+    const data =
+      await getApplicationAnalyticsByTimeRange(
+        selectedApplicationId,
+        from,
+        to
       );
 
-    } finally {
+    setAnalytics(data);
 
-      setLoading(false);
-    }
-  };
+
+    // ======================================================
+    // HOURLY ANALYTICS
+    // ======================================================
+
+    const hourly =
+      await getHourlyAnalytics(
+        selectedApplicationId,
+        from,
+        to
+      );
+
+    setHourlyData(hourly);
+
+  } catch (error) {
+
+    console.error(error);
+
+    setError(
+      "Failed to load analytics"
+    );
+
+  } finally {
+
+    setLoading(false);
+  }
+};
 
 
   loadAnalytics();
@@ -233,10 +312,30 @@ useEffect(() => {
 }, [
   selectedApplicationId,
   timeRange,
+  appliedFromDate,
+  appliedToDate
 ]);
 
 
-  
+  const shouldAggregate =
+  timeRange === "7d" ||
+  (
+    timeRange === "custom" &&
+    appliedFromDate !== "" &&
+    appliedToDate !== "" &&
+    (
+      new Date(appliedToDate).getTime() -
+      new Date(appliedFromDate).getTime()
+    ) > 2 * 24 * 60 * 60 * 1000
+  );
+const displayedChartData =
+  shouldAggregate
+    ? aggregateDailyAnalytics(
+        hourlyData,
+        appliedFromDate,
+        appliedToDate
+      )
+    : hourlyData;
 
   useEffect(() => {
 
@@ -343,7 +442,7 @@ if (error) {
     onChange={(event) =>
       setTimeRange(
         event.target.value as
-          "yesterday"| "today" | "24h" | "7d"
+          "yesterday"| "today" | "24h" | "7d" | "custom"
       )
     }
     className="rounded-lg border border-slate-300 bg-white px-4 py-2 outline-none focus:border-slate-500"
@@ -364,7 +463,89 @@ if (error) {
       Last 7 Days
     </option>
 
+    <option value="custom">
+      Custom Date Range
+    </option>
+
   </select>
+
+  {timeRange === "custom" && (
+
+  <div className="mt-4 flex flex-wrap items-end gap-4">
+
+    {/* From Date */}
+
+    <div>
+      <label className="mb-2 block text-sm font-medium text-slate-700">
+        From
+      </label>
+
+      <input
+        type="date"
+        value={fromDate}
+        max={toDate || getTodayDate()}
+        onChange={(event) =>
+          setFromDate(event.target.value)
+        }
+        className="rounded-lg border border-slate-300 bg-white px-4 py-2"
+      />
+    </div>
+
+
+    {/* To Date */}
+
+    <div>
+      <label className="mb-2 block text-sm font-medium text-slate-700">
+        To
+      </label>
+
+      <input
+        type="date"
+        value={toDate}
+        max={
+getTodayDate()
+        }
+        onChange={(event) =>
+          setToDate(event.target.value)
+        }
+        className="rounded-lg border border-slate-300 bg-white px-4 py-2"
+      />
+    </div>
+
+
+    {/* Apply */}
+
+    <button
+      type="button"
+      onClick={() => {
+
+        if (!fromDate || !toDate) {
+          setError(
+            "Please select both From and To dates."
+          );
+          return;
+        }
+
+        if (fromDate > toDate) {
+          setError(
+            "From date cannot be after To date."
+          );
+          return;
+        }
+
+        setError(null);
+
+        setAppliedFromDate(fromDate);
+        setAppliedToDate(toDate);
+
+      }}
+      className="rounded-lg bg-slate-900 px-5 py-2.5 font-medium text-white hover:bg-slate-800"
+    >
+      Apply
+    </button>
+
+  </div>
+)}
 
 </div>
 
@@ -554,11 +735,20 @@ if (error) {
 
 {!loading && hourlyData.length > 0 && (
   <>
-    <ResponseTimeChart data={hourlyData} />
+<ResponseTimeChart
+  data={displayedChartData}
+  isDaily={shouldAggregate}
+/>
 
-    <RequestVolumeChart data={hourlyData} />
+<RequestVolumeChart
+  data={displayedChartData}
+  isDaily={shouldAggregate}
+/>
 
-    <ErrorTrendChart data={hourlyData} />
+<ErrorTrendChart
+  data={displayedChartData}
+  isDaily={shouldAggregate}
+/>
   </>
 )}
 
